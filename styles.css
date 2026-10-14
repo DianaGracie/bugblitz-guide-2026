@@ -3362,6 +3362,30 @@
   transform: translateY(-1px);
 }
 
+/* The StackBlitz launch link, styled like the launcher's button. */
+.table-launcher-row .launch-button {
+  display: inline-block;
+  background: var(--accent-fill, var(--accent));
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.table-launcher-row .launch-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.table-launcher-row .launch-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .table-launcher-alt {
   font-size: 0.82rem;
   color: var(--text-muted);
@@ -4245,3 +4269,7 @@ html[data-page="bugs"].report-dialog-open body { overflow: hidden; }
     }
   }
 }
+
+/* Bugs hidden from this version of the workshop (see removeHiddenBugs in
+   app.js); also hidden when JavaScript is off. */
+[data-hidden-bug] { display: none !important; }

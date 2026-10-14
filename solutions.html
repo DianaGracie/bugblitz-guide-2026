@@ -62,7 +62,7 @@
     <h2>Solutions</h2>
     <ol>
       <li><a href="#welcome-offer-mobile">Welcome offer is overlapped on mobile</a></li>
-      <li><a href="#duplicate-order-placed">"Charged twice for the same order?"</a></li>
+      <li data-hidden-bug="needs-live-api"><a href="#duplicate-order-placed">"Charged twice for the same order?"</a></li>
       <li><a href="#generic-error">Checkout error message is unhelpful — hurting conversion</a></li>
       <li><a href="#international-postal-code">International customers can't check out</a></li>
       <li><a href="#stale-state">State/Province carries over on country change</a></li>
@@ -71,7 +71,7 @@
       <li><a href="#broken-image">One of the product cards has a missing image</a></li>
       <li><a href="#dialog-bug">Clear Cart dialog locks the page</a></li>
       <li><a href="#sale-price-not-honored">Cart and checkout totals ignore the sale price</a></li>
-      <li><a href="#stale-search">Stale header-search results</a></li>
+      <li data-hidden-bug="needs-live-api"><a href="#stale-search">Stale header-search results</a></li>
     </ol>
   </nav>
   <div class="report-viewer" id="solution-viewer" role="region" aria-label="Selected solution" hidden></div>
@@ -79,6 +79,8 @@
 
   <!-- Full solutions. With JavaScript they are hidden and shown one at a time
        beside the list above; without it they appear here. -->
+  <!-- Bugs marked data-hidden-bug="needs-live-api" can't be reproduced with the
+         Mock API, so they're hidden in this version. Remove the attribute to show one again. -->
   <div class="solution-list" id="solution-list">
 
   <div class="solution" id="welcome-offer-mobile">
@@ -114,7 +116,7 @@
     </div>
   </div>
 
-  <div class="solution" id="duplicate-order-placed">
+  <div class="solution" id="duplicate-order-placed" data-hidden-bug="needs-live-api">
     <span class="solution-tag">Interaction</span>
     <h2>2. "Charged twice for the same order?"</h2>
     <a class="solution-bug-link" href="bugs.html#duplicate-order-placed">View bug report →</a>
@@ -608,7 +610,7 @@ subtotal = computed(() =&gt;
     </div>
   </div>
 
-  <div class="solution" id="stale-search">
+  <div class="solution" id="stale-search" data-hidden-bug="needs-live-api">
     <span class="solution-tag">Search</span>
     <h2>11. Stale search results</h2>
     <a class="solution-bug-link" href="bugs.html#stale-search">View bug report →</a>

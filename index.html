@@ -55,14 +55,9 @@
 </header>
 
 <div class="masthead">
-  <div class="masthead-eyebrow">Grace Hopper Celebration 2026</div>
+  <div class="masthead-eyebrow">Hands-On Debugging Workshop</div>
   <h1>Power Up Your Release Day Confidence:<br><em>A Hands-On Bug Blitz</em></h1>
   <p class="masthead-sub">Join a squad to navigate a live, buggy application. Hunt down issues, determine their severity, and fix code-breaking bugs — together.</p>
-  <div class="masthead-meta">
-    <span>60-Minute Workshop</span>
-    <span>Anaheim, CA</span>
-    <span>Oct 29, 2026</span>
-  </div>
 </div>
 
 
@@ -141,49 +136,17 @@
             <h4>Launch in StackBlitz</h4>
 
             <p>
-              Enter your table number or scan the QR code at your table.
-              This selects your team for sharing live data in Supabase.
+              Open the workshop app in your browser. StackBlitz installs everything and starts the
+              app with its mock API automatically. The first start can take a minute or two.
             </p>
 
-            <!-- Table Number Launcher -->
             <div class="table-launcher" id="team-workspace">
               <div class="table-launcher-row">
-                <label for="table-input">Table #:</label>
-
-                <input 
-                  id="table-input" 
-                  type="number" 
-                  min="1" 
-                  max="50"
-                  placeholder="Table #"
-                  aria-describedby="table-input-error"
-                />
-
-                <button 
-                  type="button" 
-                  data-launch-stackblitz
-                >
-                  Launch Table Workspace →
-                </button>
-
-                <span class="table-launcher-alt">
-                  or scan the QR code on your table
-                </span>
+                <a class="launch-button"
+                  href="https://stackblitz.com/github/marisamachlis/bugblitz-workshop-2026?file=README.md"
+                  target="_blank" rel="noopener noreferrer">Launch in StackBlitz →</a>
               </div>
-
-              <!-- Field-level Inline Error Message -->
-              <div 
-                id="table-input-error" 
-                role="alert"
-                class="table-input-error"
-              ></div>
             </div>
-
-            <p class="setup-note">
-              <strong>⚠️ Important:</strong>
-              The <code>?team=&lt;id&gt;</code> parameter routes database requests
-              to your team's shared schema in Supabase. <strong>Do not remove it.</strong>
-            </p>
           </div>
 
           <div class="setup-option">
@@ -204,9 +167,9 @@
             </p>
 
             <p>
-              Clone the repository from 
-              <a href="https://github.com/marisamachlis/bugblitz-ghc2026" target="_blank" rel="noopener noreferrer">https://github.com/marisamachlis/bugblitz-ghc2026</a>, 
-              then choose one of the paths below.
+              Clone the repository from
+              <a href="https://github.com/marisamachlis/bugblitz-workshop-2026" target="_blank" rel="noopener noreferrer">https://github.com/marisamachlis/bugblitz-workshop-2026</a>,
+              then choose one of the paths below. Both start the app and its local mock API.
             </p>
 
             <div class="setup-path">
@@ -227,30 +190,13 @@
               </p>
             </div>
 
-            <div class="setup-connect setup-control-group">
-              <h5>Select Your Team</h5>
-              <p>Open <code>http://localhost:4200/</code> once the app starts. Click the
-                <strong>Team</strong> badge in the header, enter your assigned team
-                number, and click <strong>Set team</strong>.</p>
-              <p class="setup-note">Note that you can still participate with <strong>Team: None</strong>, but live Supabase data will be shared with other participants who haven’t selected a team.</p>
-            </div>
-          </div>
-
-          <div class="setup-connect setup-control-group">
-            <h4>View or Update Your Current Setup</h4>
-            <figure class="header-controls-guide">
-              <img src="header-controls.png" width="1280" height="130"
-                alt="The Green Nook app header with the Workshop Mode: Live Supabase and Team: None dropdown controls."
-                loading="lazy" />
-              <figcaption>The header badges show your selected team and whether you are in Live Supabase or Mock API mode. Click either badge to make a change.</figcaption>
-            </figure>
-            <p class="setup-note">On a small viewport width, open the hamburger menu (☰) to find the badges.</p>
+            <p>Open <code>http://localhost:4200/</code> once the app starts.</p>
           </div>
 
           <aside class="setup-troubleshooting" id="mock-api-mode" aria-labelledby="mock-api-heading">
-            <h4 id="mock-api-heading">Troubleshooting Network Restrictions</h4>
-            <p>If your network blocks Supabase, click the Workshop <strong>Mode</strong> badge and choose <strong>Switch to Mock API</strong> to continue with local mock data.</p>
-            <p>Mock data isn’t shared with your team. Mock orders will reset if you restart the mock server. Keep your team selected in case you switch back to <strong>Live Supabase</strong>.</p>
+            <h4 id="mock-api-heading">How the App’s Data Works</h4>
+            <p>Products and coupons are sample data served by a local mock API that starts with the app.</p>
+            <p>Orders you place can be looked up by email on <strong>My Orders</strong>. They’re stored in memory, reset when the mock API restarts, and aren’t shared with other participants.</p>
           </aside>
         </div>
       </div>

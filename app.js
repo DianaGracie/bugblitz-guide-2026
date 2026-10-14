@@ -26,7 +26,8 @@
 
       clearTableError();
 
-      const repoUrl = 'https://stackblitz.com/edit/bugblitz-ghc2026';
+      // Opens the workshop app's GitHub repo directly in StackBlitz.
+      const repoUrl = 'https://stackblitz.com/github/marisamachlis/bugblitz-workshop-2026';
       const targetUrl = `${repoUrl}?file=README.md&initialpath=/?team=${teamId}`;
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
@@ -686,6 +687,19 @@
     }
   }
 
+  // Bugs marked data-hidden-bug (e.g. "needs-live-api": they can't be
+  // reproduced with the Mock API) stay in the HTML but are taken out of the page
+  // before anything else is set up, so they drop out of the directory, triage
+  // board, counts, filters, and solutions list. Delete the attribute to bring
+  // a bug back. Visible solutions are renumbered to match the list.
+  function removeHiddenBugs() {
+    document.querySelectorAll('[data-hidden-bug]').forEach((el) => el.remove());
+    document.querySelectorAll('#solution-list .solution > h2').forEach((heading, index) => {
+      const text = heading.firstChild;
+      if (text && text.nodeType === Node.TEXT_NODE) text.textContent = text.textContent.replace(/^\s*\d+\.\s*/, (index + 1) + '. ');
+    });
+  }
+
   // Native disclosures remain usable without JavaScript. With JavaScript,
   // reveal the next control only after the preceding hint has been opened.
   function setupHints(root) {
@@ -1164,6 +1178,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    removeHiddenBugs();
     setupLaunchWidget();
     setupBugGuides();
     setupCollapsibleSections();
