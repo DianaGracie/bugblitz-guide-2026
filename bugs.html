@@ -451,6 +451,12 @@
           generic "Please fill in all fields" message with no indication of <em>which</em> field is the problem. Session
           replays show people re-checking every input in frustration; funnel data shows abandonment spikes at this step.
           Fixing this should be a straightforward conversion win.</p>
+        <figure class="bug-guide-repro">
+          <img src="generic-error-repro.webp"
+            alt="Checkout form with Address, City, State, and ZIP Code left empty and a Please fill in all fields error">
+          <figcaption>Several required fields are empty, but the only feedback is a generic "Please fill in all fields."
+            message below the button.</figcaption>
+        </figure>
         <div class="bug-guide-sub">What good looks like</div>
         <ul>
           <li>Each missing required field is called out inline, with a message that names the field and what's expected.
@@ -475,10 +481,10 @@
           </details>
           <details class="bug-hint" id="hint-generic-error-3">
             <summary>Hint 3 of 3 · Another clue</summary>
-            <p>In checkout.component.ts, inspect the required-field checks; in checkout.component.html, find where the error is rendered. After your change, verify that correcting a field clears its error on revalidation and that valid checkout still works. Keep optional-region rules consistent with the State/Province report. How could you collect errors by field, display each beside its input, and associate the message with that input for accessibility?</p>
+            <p>In checkout.component.ts, inspect the required-field checks; in checkout.component.html, find where the error is rendered. After your change, verify that correcting a field clears its error on revalidation and that valid checkout still works. Check that an empty State/Province after a country change is reported like any other missing field. How could you collect errors by field, display each beside its input, and associate the message with that input for accessibility?</p>
             <details class="related-validation">
               <summary>Related check · Country and region validation</summary>
-              <p>Country changes affect both postal-code rules and whether State/Province is required. Verify these together: valid postal codes should not be blocked by an optional region, and a missing required region should not slip through. Compare the <a href="#stale-state">State/Province</a>, <a href="#international-postal-code">international postal-code</a>, and <a href="#generic-error">checkout error</a> reports when checking the combined behavior.</p>
+              <p>Country changes affect postal-code rules and which State/Province options apply. Verify these together: a valid postal code shouldn't be rejected, and switching countries shouldn't leave a stale region behind. Compare the <a href="#stale-state">State/Province</a>, <a href="#international-postal-code">international postal-code</a>, and <a href="#generic-error">checkout error</a> reports when checking the combined behavior.</p>
             </details>
           </details>
         </details>
@@ -531,7 +537,7 @@
             <p>In checkout.component.ts, set a Sources breakpoint at postal-code validation and inspect form.country, form.zip, and the pattern being tested. Retest valid and invalid formats after your change, distinguishing region errors from postal-code errors. How could the selected country determine both the validation rule and the format example shown when validation fails?</p>
             <details class="related-validation">
               <summary>Related check · Country and region validation</summary>
-              <p>Country changes affect both postal-code rules and whether State/Province is required. Verify these together: valid postal codes should not be blocked by an optional region, and a missing required region should not slip through. Compare the <a href="#stale-state">State/Province</a>, <a href="#international-postal-code">international postal-code</a>, and <a href="#generic-error">checkout error</a> reports when checking the combined behavior.</p>
+              <p>Country changes affect postal-code rules and which State/Province options apply. Verify these together: a valid postal code shouldn't be rejected, and switching countries shouldn't leave a stale region behind. Compare the <a href="#stale-state">State/Province</a>, <a href="#international-postal-code">international postal-code</a>, and <a href="#generic-error">checkout error</a> reports when checking the combined behavior.</p>
             </details>
           </details>
         </details>
@@ -571,9 +577,8 @@
         <ol>
           <li>Changing the country clears any previously selected state/province value.</li>
           <li>The state field re-renders correctly (select vs. free-text input) based on the new country's regions.</li>
-          <li>When State/Province is required for the selected country, the required-field check catches the empty value
-            after a country change instead of allowing a stale value to slip through. Otherwise, the field is optional
-            or hidden and an empty value does not block submission.</li>
+          <li>After a country change, the required-field check catches the empty State/Province value instead of
+            allowing a stale value to slip through.</li>
           <li>No regressions to the initial country selection flow.</li>
         </ol>
         <div class="workshop-prompt">
@@ -589,14 +594,14 @@
           </details>
           <details class="bug-hint" id="hint-stale-state-2">
             <summary>Hint 2 of 3 · What to investigate</summary>
-            <p>In DevTools → Elements, inspect the region options, label, and required attribute. Compare an empty region with a selected region for Canada, then try an empty region for France. Note which validation check blocks submission—the separate postal-code bug can also reject an address. Do the displayed choices, stored value, and required-field behavior agree?</p>
+            <p>In DevTools → Elements, inspect the region options, label, and selected value. Pick a US state, switch to Canada, then to France, and compare what each control shows with the value that would be submitted. Note which validation check blocks submission—the separate postal-code bug can also reject an address. Do the displayed choices and the stored value agree?</p>
           </details>
           <details class="bug-hint" id="hint-stale-state-3">
             <summary>Hint 3 of 3 · Another clue</summary>
-            <p>Find onCountryChange in checkout.component.ts and pause there with a Sources breakpoint. Step through while watching form.state, then inspect the region validation and its template’s required binding. Verify the form value even if the postal-code bug still blocks submission. How could changing countries clear the old region and apply a consistent rule for when a new region is required?</p>
+            <p>Find onCountryChange in checkout.component.ts and pause there with a Sources breakpoint. Step through while watching form.state, then check what the required-field validation sees on submit. Verify the form value even if the postal-code bug still blocks submission. How could changing countries clear the old region so the existing required-field check catches it?</p>
             <details class="related-validation">
               <summary>Related check · Country and region validation</summary>
-              <p>Country changes affect both postal-code rules and whether State/Province is required. Verify these together: valid postal codes should not be blocked by an optional region, and a missing required region should not slip through. Compare the <a href="#stale-state">State/Province</a>, <a href="#international-postal-code">international postal-code</a>, and <a href="#generic-error">checkout error</a> reports when checking the combined behavior.</p>
+              <p>Country changes affect postal-code rules and which State/Province options apply. Verify these together: a valid postal code shouldn't be rejected, and switching countries shouldn't leave a stale region behind. Compare the <a href="#stale-state">State/Province</a>, <a href="#international-postal-code">international postal-code</a>, and <a href="#generic-error">checkout error</a> reports when checking the combined behavior.</p>
             </details>
           </details>
         </details>
@@ -617,6 +622,12 @@
           certain products — they click it and nothing happens. Those cards are faded and have an "Out of Stock" badge
           in the top-right corner, but shoppers seem to miss it and the button still says "Add to Cart." Can we make the
           availability clearer? People shouldn't have to contact us to figure out that a plant is out of stock.</p>
+        <figure class="bug-guide-repro">
+          <img src="sold-out-feedback-repro.jpg"
+            alt="Faded String of Pearls product card with Sale and Out of Stock badges and an Add to Cart button">
+          <figcaption>The sold-out String of Pearls card is faded with an "Out of Stock" badge, but its button still
+            says "Add to Cart."</figcaption>
+        </figure>
         <div class="workshop-prompt">
           <strong>Your mission:</strong> The reporter has told you what shoppers <em>think</em> is happening; work out
           what's actually happening in the UI, then propose a fix that makes the sold-out state obvious without breaking
