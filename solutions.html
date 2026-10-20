@@ -299,7 +299,7 @@ async onSubmit(event: Event) {
     <div class="solution-section-label">Related Bugs</div>
     <ul>
       <li><a href="#international-postal-code">International customers can't check out</a> — the postal-code error is set separately, after the required-field check, and still uses the single <code>errorMessage</code> banner. Consider setting <code>fieldErrors()['zip']</code> instead so it appears beside the field.</li>
-      <li><a href="#stale-state">State/Province carries over on country change</a> — once the stale value is cleared on a country change, the <code>state</code> check in <code>validate()</code> is what tells the shopper to choose a new region.</li>
+      <li><a href="#stale-state">State/Province carries over on country change</a> — that fix makes the region optional for countries like France. If your team applies both fixes, change the <code>state</code> check in <code>validate()</code> to <code>if (this.stateRequired &amp;&amp; !this.form.state.trim())</code> so those addresses aren't blocked again.</li>
     </ul>
 
     <div class="solution-footer">
@@ -376,13 +376,17 @@ if (!pattern.test(this.form.zip.trim())) {
     <a class="solution-bug-link" href="bugs.html#stale-state">View bug report →</a>
 
     <div class="solution-section-label">Root Cause</div>
-    <p>The <code>onCountryChange</code> handler updates the region list, label, and ZIP label — but never clears <code>form.state</code>. A previous value (e.g., <code>"CA"</code>) silently persists and passes the required-field check.</p>
+    <p>The <code>onCountryChange</code> handler updates the region list, label, and ZIP label — but never clears <code>form.state</code>. A previous value (e.g., <code>"CA"</code>) silently persists and passes the required-field check. Additionally, the validation logic doesn't account for countries that do not require states, provinces, or regions in valid mailing addresses.</p>
     <p class="file-path">src/app/components/checkout/checkout.component.ts:113–119</p>
 
     <div class="solution-section-label">The Fix</div>
-    <p>Clear the state/region on every country change so the existing required-field check catches the empty value:</p>
+    <p>Clear the state/region on every country change and only make the field required for countries that need it. For this workshop, require a state/region for the US, Canada, and Australia; leave it optional elsewhere.</p>
     <p class="file-path">src/app/components/checkout/checkout.component.ts:113–119 (original lines)</p>
-    <pre><code>onCountryChange(): void {
+    <pre><code><span class="diff-add">get stateRequired(): boolean {
+  return ['United States', 'Canada', 'Australia'].includes(this.form.country);
+}</span>
+
+onCountryChange(): void {
   const country = this.form.country;
 <span class="diff-add">  this.form.state = '';</span>
   this.stateOptions = REGIONS[country] ?? [];
@@ -390,9 +394,37 @@ if (!pattern.test(this.form.zip.trim())) {
   this.stateLabel = STATE_LABELS[country] ?? 'State / Province';
   this.zipLabel = country === 'United States' ? 'ZIP Code' : 'Postal Code';
 }</code></pre>
+    <p class="file-path">src/app/components/checkout/checkout.component.ts:129–135 (original lines)</p>
+    <pre><code>// …
+      !this.form.city ||
+<span class="diff-remove">      !this.form.state ||</span>
+<span class="diff-add">      (this.stateRequired &amp;&amp; !this.form.state.trim()) ||</span>
+      !this.form.zip ||
+      !this.form.country
+    ) {
+<span class="diff-remove">      this.errorMessage.set('Please fill in all fields.');</span>
+<span class="diff-add">      this.errorMessage.set('Please fill in all required fields.');</span>
+      return;
+// …</code></pre>
+    <p>Already applied the <a href="#generic-error">checkout error fix</a>? That block is now <code>validate()</code>, so make the same change to its state line instead. Otherwise the label says “(optional)” but checkout still blocks an empty region:</p>
+    <pre><code>// checkout.component.ts — inside validate()
+<span class="diff-remove">if (!this.form.state)    errors['state']    = `${this.stateLabel} is required.`;</span>
+<span class="diff-add">if (this.stateRequired &amp;&amp; !this.form.state.trim()) errors['state'] = `${this.stateLabel} is required.`;</span></code></pre>
+    <p class="file-path">src/app/components/checkout/checkout.component.html:49–52 (original lines)</p>
+    <pre><code><span class="diff-remove">&lt;label for="state"&gt;{{ stateLabel }}&lt;/label&gt;</span>
+<span class="diff-add">&lt;label for="state"&gt;{{ stateLabel }}{{ stateRequired ? '' : ' (optional)' }}&lt;/label&gt;</span>
+@if (hasRegions) {
+<span class="diff-remove">  &lt;select id="state" [(ngModel)]="form.state" name="state" required&gt;</span>
+<span class="diff-add">  &lt;select id="state" [(ngModel)]="form.state" name="state" [required]="stateRequired"&gt;</span>
+<span class="diff-remove">    &lt;option value="" disabled&gt;Select {{ stateLabel }}&lt;/option&gt;</span>
+<span class="diff-add">    &lt;option value="" [disabled]="stateRequired"&gt;Select {{ stateLabel }}&lt;/option&gt;</span>
+  &lt;!-- … --&gt;</code></pre>
+    <p class="file-path">src/app/components/checkout/checkout.component.html:58 (original lines)</p>
+    <pre><code><span class="diff-remove">&lt;input id="state" type="text" [(ngModel)]="form.state" name="state" required placeholder="{{ stateLabel }}" /&gt;</span>
+<span class="diff-add">&lt;input id="state" type="text" [(ngModel)]="form.state" name="state" [required]="stateRequired" placeholder="{{ stateLabel }}" /&gt;</span></code></pre>
 
     <div class="solution-section-label">Confirming the Fix</div>
-    <p>Pick United States → California, then switch to Canada: the province dropdown resets, and submitting without a province shows the required-field error. Switch to France: the State / Province text field is empty instead of showing <code>CA</code>.</p>
+    <p>Switch from United States to Canada: the value clears and a province is required. Switch to France: the value clears and an empty region passes validation.</p>
     <div class="solution-section-label">Related Pitfall</div>
     <ul>
       <li><strong>Dependent fields must be reset when their parent changes.</strong> This is a universal form pattern — country → state, category → subcategory, product → variant, and so on.</li>
@@ -400,7 +432,7 @@ if (!pattern.test(this.form.zip.trim())) {
 
     <div class="solution-section-label">Related Bugs</div>
     <ul>
-      <li><a href="#generic-error">Checkout error message is unhelpful</a> — once the stale value is cleared, an empty State/Province hits the generic “Please fill in all fields.” message. With the checkout error fix, the error names the field instead.</li>
+      <li><a href="#generic-error">Checkout error message is unhelpful</a> — both fixes change the same required-field check. If your team applies both, update the state line in <code>validate()</code> as shown in The Fix; otherwise a valid France address is blocked again with “State / Province is required.”</li>
       <li><a href="#international-postal-code">International customers can't check out</a> — when retesting with a non-US country, the postal-code check can still reject the address. Use a 5-digit code (e.g., France <code>75008</code>) or fix the postal-code bug first.</li>
     </ul>
 
