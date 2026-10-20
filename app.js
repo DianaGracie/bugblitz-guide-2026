@@ -27,8 +27,8 @@
       clearTableError();
 
       // Opens the workshop app's GitHub repo directly in StackBlitz.
-      const repoUrl = 'https://stackblitz.com/github/marisamachlis/bugblitz-workshop-2026';
-      const targetUrl = `${repoUrl}?file=README.md&initialpath=/?team=${teamId}`;
+      const repoUrl = 'https://stackblitz.com/edit/bugblitz-workshop-2026';
+      const targetUrl = `${repoUrl}?file=README.md`;
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
 
