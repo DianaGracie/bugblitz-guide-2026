@@ -261,7 +261,8 @@ async onSubmit(event: Event) {
 <span class="diff-add">  if (!this.validate()) return;</span>
   // … rest unchanged
 }</code></pre>
-    <pre><code>&lt;!-- checkout.component.html — repeat per field --&gt;
+    <p>Add an error message to <strong>each of the 7 fields</strong>. The example below shows the Email field; for each other field, copy the pattern and replace <strong>all three</strong> <code>'email'</code> keys with that field's key. The key matches the input's <code>name</code>: <code>fullName</code>, <code>email</code>, <code>address</code>, <code>country</code>, <code>city</code>, <code>state</code>, <code>zip</code>.</p>
+    <pre><code>&lt;!-- checkout.component.html — the wrapper around the Email input --&gt;
 <span class="diff-remove">&lt;div class="form-group full"&gt;</span>
 <span class="diff-add">&lt;div class="form-group full" [class.has-error]="fieldErrors()['email']"&gt;</span>
   &lt;label for="email"&gt;Email&lt;/label&gt;
@@ -270,6 +271,18 @@ async onSubmit(event: Event) {
     &lt;p class="field-error"&gt;{{ fieldErrors()['email'] }}&lt;/p&gt;
   }</span>
 &lt;/div&gt;</code></pre>
+    <p>Style the new classes so errors stand out from regular text:</p>
+    <pre><code>/* checkout.component.scss */
+<span class="diff-add">.field-error {
+  color: #c0392b;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.has-error input,
+.has-error select {
+  border-color: #c0392b;
+}</span></code></pre>
 
     <div class="solution-section-label">Why This Works</div>
     <ul>
@@ -281,6 +294,12 @@ async onSubmit(event: Event) {
     <ul>
       <li>Trim required text fields before checking them—a value containing only spaces should still count as missing.</li>
       <li>For accessibility, associate error text with the input via <code>aria-describedby</code> and mark the input <code>aria-invalid="true"</code>.</li>
+    </ul>
+
+    <div class="solution-section-label">Related Bugs</div>
+    <ul>
+      <li><a href="#international-postal-code">International customers can't check out</a> — the postal-code error is set separately, after the required-field check, and still uses the single <code>errorMessage</code> banner. Consider setting <code>fieldErrors()['zip']</code> instead so it appears beside the field.</li>
+      <li><a href="#stale-state">State/Province carries over on country change</a> — once the stale value is cleared on a country change, the <code>state</code> check in <code>validate()</code> is what tells the shopper to choose a new region.</li>
     </ul>
 
     <div class="solution-footer">
@@ -340,6 +359,12 @@ if (!pattern.test(this.form.zip.trim())) {
       <li>For full-address validation, consider API validation like <a href="https://developers.google.com/maps/documentation/address-validation/overview" target="_blank" rel="noopener noreferrer">Google Address Validation API</a> or <a href="https://www.smarty.com/docs/apis/international-street-api/reference" target="_blank" rel="noopener noreferrer">Smarty address verification</a>.</li>
     </ul>
 
+    <div class="solution-section-label">Related Bugs</div>
+    <ul>
+      <li><a href="#generic-error">Checkout error message is unhelpful</a> — the postal-code message still appears in the general error banner. With the checkout error fix's per-field errors, show it beside the ZIP / postal code field.</li>
+      <li><a href="#stale-state">State/Province carries over on country change</a> — the postal code isn't cleared on a country change either. Country-aware patterns reject a leftover code that doesn't fit the new country (e.g., <code>97201</code> for the UK) but still accept it where the format matches (e.g., France).</li>
+    </ul>
+
     <div class="solution-footer">
       <a class="solution-footer-link" href="bugs.html#international-postal-code">View bug report →</a>
     </div>
@@ -351,17 +376,13 @@ if (!pattern.test(this.form.zip.trim())) {
     <a class="solution-bug-link" href="bugs.html#stale-state">View bug report →</a>
 
     <div class="solution-section-label">Root Cause</div>
-    <p>The <code>onCountryChange</code> handler updates the region list, label, and ZIP label — but never clears <code>form.state</code>. A previous value (e.g., <code>"CA"</code>) silently persists and passes the required-field check. Additionally, the validation logic doesn't account for countries that do not require states, provinces, or regions in valid mailing addresses.</p>
+    <p>The <code>onCountryChange</code> handler updates the region list, label, and ZIP label — but never clears <code>form.state</code>. A previous value (e.g., <code>"CA"</code>) silently persists and passes the required-field check.</p>
     <p class="file-path">src/app/components/checkout/checkout.component.ts:113–119</p>
 
     <div class="solution-section-label">The Fix</div>
-    <p>Clear the state on every country change and only make the field required for countries that need it. For this workshop, require a region for the US, Canada, and Australia; leave it optional elsewhere.</p>
+    <p>Clear the state/region on every country change so the existing required-field check catches the empty value:</p>
     <p class="file-path">src/app/components/checkout/checkout.component.ts:113–119 (original lines)</p>
-    <pre><code><span class="diff-add">get stateRequired(): boolean {
-  return ['United States', 'Canada', 'Australia'].includes(this.form.country);
-}</span>
-
-onCountryChange(): void {
+    <pre><code>onCountryChange(): void {
   const country = this.form.country;
 <span class="diff-add">  this.form.state = '';</span>
   this.stateOptions = REGIONS[country] ?? [];
@@ -369,36 +390,18 @@ onCountryChange(): void {
   this.stateLabel = STATE_LABELS[country] ?? 'State / Province';
   this.zipLabel = country === 'United States' ? 'ZIP Code' : 'Postal Code';
 }</code></pre>
-    <p class="file-path">src/app/components/checkout/checkout.component.ts:129–135 (original lines)</p>
-    <pre><code>// …
-      !this.form.city ||
-<span class="diff-remove">      !this.form.state ||</span>
-<span class="diff-add">      (this.stateRequired &amp;&amp; !this.form.state.trim()) ||</span>
-      !this.form.zip ||
-      !this.form.country
-    ) {
-<span class="diff-remove">      this.errorMessage.set('Please fill in all fields.');</span>
-<span class="diff-add">      this.errorMessage.set('Please fill in all required fields.');</span>
-      return;
-// …</code></pre>
-    <p class="file-path">src/app/components/checkout/checkout.component.html:49–52 (original lines)</p>
-    <pre><code><span class="diff-remove">&lt;label for="state"&gt;{{ stateLabel }}&lt;/label&gt;</span>
-<span class="diff-add">&lt;label for="state"&gt;{{ stateLabel }}{{ stateRequired ? '' : ' (optional)' }}&lt;/label&gt;</span>
-@if (hasRegions) {
-<span class="diff-remove">  &lt;select id="state" [(ngModel)]="form.state" name="state" required&gt;</span>
-<span class="diff-add">  &lt;select id="state" [(ngModel)]="form.state" name="state" [required]="stateRequired"&gt;</span>
-<span class="diff-remove">    &lt;option value="" disabled&gt;Select {{ stateLabel }}&lt;/option&gt;</span>
-<span class="diff-add">    &lt;option value="" [disabled]="stateRequired"&gt;Select {{ stateLabel }}&lt;/option&gt;</span>
-  &lt;!-- … --&gt;</code></pre>
-    <p class="file-path">src/app/components/checkout/checkout.component.html:58 (original lines)</p>
-    <pre><code><span class="diff-remove">&lt;input id="state" type="text" [(ngModel)]="form.state" name="state" required placeholder="{{ stateLabel }}" /&gt;</span>
-<span class="diff-add">&lt;input id="state" type="text" [(ngModel)]="form.state" name="state" [required]="stateRequired" placeholder="{{ stateLabel }}" /&gt;</span></code></pre>
 
     <div class="solution-section-label">Confirming the Fix</div>
-    <p>Switch from California to Canada: the value clears and a province is required. Switch to France: the value clears and an empty region passes validation.</p>
+    <p>Pick United States → California, then switch to Canada: the province dropdown resets, and submitting without a province shows the required-field error. Switch to France: the State / Province text field is empty instead of showing <code>CA</code>.</p>
     <div class="solution-section-label">Related Pitfall</div>
     <ul>
       <li><strong>Dependent fields must be reset when their parent changes.</strong> This is a universal form pattern — country → state, category → subcategory, product → variant, and so on.</li>
+    </ul>
+
+    <div class="solution-section-label">Related Bugs</div>
+    <ul>
+      <li><a href="#generic-error">Checkout error message is unhelpful</a> — once the stale value is cleared, an empty State/Province hits the generic “Please fill in all fields.” message. With the checkout error fix, the error names the field instead.</li>
+      <li><a href="#international-postal-code">International customers can't check out</a> — when retesting with a non-US country, the postal-code check can still reject the address. Use a 5-digit code (e.g., France <code>75008</code>) or fix the postal-code bug first.</li>
     </ul>
 
     <div class="solution-footer">
@@ -419,7 +422,7 @@ onCountryChange(): void {
     <p>Reject duplicate codes before mutating state. Normalize input so casing and whitespace cannot bypass the guard:</p>
     <pre><code>// cart.service.ts — inside applyCoupon(), after fetching coupon
 <span class="diff-add">const alreadyApplied = this.appliedCoupons().some(
-  (entry) =&gt; entry.coupon.code === coupon.code
+  (entry) =&gt; entry.coupon.code.trim().toUpperCase() === coupon.code.trim().toUpperCase()
 );
 if (alreadyApplied) {
   return { success: false, message: 'This promo code is already applied.' };
@@ -461,8 +464,7 @@ this.appliedCoupons.set([
   [disabled]="!product.in_stock"
 <span class="diff-add">  [attr.aria-label]="!product.in_stock
     ? product.name + ' is sold out'
-    : 'Add ' + product.name + ' to cart'"
-  [title]="!product.in_stock ? 'This item is currently out of stock' : null"</span>
+    : 'Add ' + product.name + ' to cart'"</span>
 &gt;
 <span class="diff-remove">  Add to Cart</span>
 <span class="diff-add">  {{ product.in_stock ? 'Add to Cart' : 'Sold Out' }}</span>
@@ -483,7 +485,7 @@ this.appliedCoupons.set([
       <div class="solution-section-label">Why This Works</div>
       <ul>
         <li><strong>The button label is the truth.</strong> A button that reads "Sold Out" makes the unavailability clear to users.</li>
-        <li><strong><code>aria-label</code> + <code>title</code></strong> covers screen-reader and hover-tooltip users.</li>
+        <li><strong><code>aria-label</code></strong> gives screen-reader users the product name and its sold-out status.</li>
       </ul>
 
     <div class="solution-footer">
